@@ -1,98 +1,184 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import React, { useState, useCallback } from 'react';
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  RefreshControl,
+  ActivityIndicator,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Sharing from 'expo-sharing';
+import { useCards, useTheme, useProfile } from '@/context/AppContext';
+import { SNSCard as SNSCardType } from '@/types';
+import { Colors, Spacing } from '@/constants/theme';
+import { SNSCard } from '@/components/SNSCard';
+import { ProfileHeader } from '@/components/ProfileHeader';
+import { Toast } from '@/components/ui/Toast';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const insets = useSafeAreaInsets();
+  const { isDarkMode } = useTheme();
+  const { cards } = useCards();
+  const { isLoading } = useProfile();
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const [refreshing, setRefreshing] = useState(false);
+  const [toast, setToast] = useState({ visible: false, message: '' });
+
+  const gradientColors = isDarkMode
+    ? Colors.dark.backgroundGradient
+    : Colors.light.backgroundGradient;
+
+  const sortedCards = [...cards].sort((a, b) => a.order - b.order);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    // Simulate refresh
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 500);
+  }, []);
+
+  const handleCopy = (url: string) => {
+    setToast({ visible: true, message: 'URLをコピーしました' });
+  };
+
+  const handleShare = async (card: SNSCardType) => {
+    try {
+      const isAvailable = await Sharing.isAvailableAsync();
+      if (isAvailable) {
+        // For now, just show a toast since we need more complex sharing logic
+        setToast({ visible: true, message: 'シェア機能は準備中です' });
+      }
+    } catch (error) {
+      console.error('Share error:', error);
+    }
+  };
+
+  const hideToast = () => {
+    setToast({ visible: false, message: '' });
+  };
+
+  if (isLoading) {
+    return (
+      <LinearGradient colors={gradientColors} style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.primary.orange} />
+      </LinearGradient>
+    );
+  }
+
+  return (
+    <LinearGradient colors={gradientColors} style={styles.container}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: insets.top, paddingBottom: insets.bottom + 100 },
+        ]}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.primary.orange}
+          />
+        }
+      >
+        <ProfileHeader />
+
+        {sortedCards.length > 0 ? (
+          <View style={styles.cardsContainer}>
+            <View style={styles.cardsGrid}>
+              {sortedCards.map((card) => (
+                <SNSCard
+                  key={card.id}
+                  card={card}
+                  onCopy={handleCopy}
+                  onShare={handleShare}
+                />
+              ))}
+            </View>
+          </View>
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Text style={[styles.emptyTitle, isDarkMode ? styles.textDark : styles.textLight]}>
+              SNSアカウントがありません
+            </Text>
+            <Text
+              style={[
+                styles.emptyDescription,
+                isDarkMode ? styles.textSecondaryDark : styles.textSecondaryLight,
+              ]}
+            >
+              設定画面からSNSアカウントを追加して、{'\n'}
+              QRコードを生成しましょう
+            </Text>
+          </View>
+        )}
+      </ScrollView>
+
+      <Toast
+        message={toast.message}
+        visible={toast.visible}
+        onHide={hideToast}
+        type="success"
+      />
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  cardsContainer: {
+    paddingHorizontal: Spacing.screen,
+  },
+  cardsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    paddingTop: 60,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
     marginBottom: 8,
+    textAlign: 'center',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  emptyDescription: {
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  textLight: {
+    color: Colors.light.text,
+  },
+  textDark: {
+    color: Colors.dark.text,
+  },
+  textSecondaryLight: {
+    color: Colors.light.textSecondary,
+  },
+  textSecondaryDark: {
+    color: Colors.dark.textSecondary,
   },
 });
