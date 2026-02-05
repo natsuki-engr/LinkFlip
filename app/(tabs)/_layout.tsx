@@ -1,30 +1,15 @@
 import { Tabs } from 'expo-router';
+import { useRouter, usePathname } from 'expo-router';
 import React from 'react';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
-import { GestureResponderEvent, Pressable } from 'react-native';
-import type { BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
 
-import { Colors } from '@/constants/theme';
+import { Colors, Shadows } from '@/constants/theme';
 import { useTheme } from '@/context/AppContext';
-
-function HapticTab({ children, onPress, style, accessibilityState }: BottomTabBarButtonProps) {
-  const handlePress = (e: GestureResponderEvent) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    onPress?.(e);
-  };
-
-  return (
-    <Pressable
-      onPress={handlePress}
-      style={style}
-      accessibilityRole="button"
-      accessibilityState={accessibilityState}
-    >
-      {children}
-    </Pressable>
-  );
-}
 
 function HomeIcon({ color, size }: { color: string; size: number }) {
   return (
@@ -42,36 +27,131 @@ function SettingsIcon({ color, size }: { color: string; size: number }) {
   );
 }
 
-export default function TabLayout() {
+function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { isDarkMode } = useTheme();
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const pathname = usePathname();
+  const isHome = pathname === '/';
+
+  const handleAddAccount = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    router.push('/add-account');
+  };
 
   return (
+    <View style={styles.tabBarWrapper}>
+      {isHome && (
+        <View style={styles.fabContainer}>
+          <TouchableOpacity
+            style={[styles.fab, Shadows.elevation3]}
+            onPress={handleAddAccount}
+            activeOpacity={0.85}
+          >
+            <LinearGradient
+              colors={[Colors.primary.orange, Colors.primary.gold]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.fabGradient}
+            >
+              <Svg width={28} height={28} viewBox="0 0 24 24" fill="#fff">
+                <Path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+              </Svg>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      )}
+      <View
+        style={[
+          styles.tabBar,
+          {
+            paddingBottom: insets.bottom,
+            backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background,
+            borderTopColor: isDarkMode ? Colors.dark.border : Colors.light.border,
+          },
+        ]}
+      >
+        {state.routes.map((route, index) => {
+          const { options } = descriptors[route.key];
+          const isFocused = state.index === index;
+          const color = isFocused
+            ? Colors.primary.orange
+            : isDarkMode
+              ? Colors.dark.textSecondary
+              : Colors.light.textSecondary;
+
+          const onPress = () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            const event = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            });
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name);
+            }
+          };
+
+          return (
+            <TouchableOpacity
+              key={route.key}
+              style={styles.tabItem}
+              onPress={onPress}
+              activeOpacity={0.7}
+            >
+              {route.name === 'index' ? (
+                <HomeIcon size={24} color={color} />
+              ) : (
+                <SettingsIcon size={24} color={color} />
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+export default function TabLayout() {
+  return (
     <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors.primary.orange,
-        tabBarInactiveTintColor: isDarkMode ? Colors.dark.textSecondary : Colors.light.textSecondary,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarStyle: {
-          backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background,
-          borderTopColor: isDarkMode ? Colors.dark.border : Colors.light.border,
-        },
-      }}
+      tabBar={(props) => <CustomTabBar {...props} />}
+      screenOptions={{ headerShown: false }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'ホーム',
-          tabBarIcon: ({ color }) => <HomeIcon size={24} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: '設定',
-          tabBarIcon: ({ color }) => <SettingsIcon size={24} color={color} />,
-        }}
-      />
+      <Tabs.Screen name="index" options={{ title: 'ホーム' }} />
+      <Tabs.Screen name="settings" options={{ title: '設定' }} />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBarWrapper: {
+    alignItems: 'center',
+  },
+  fabContainer: {
+    marginBottom: -28,
+    zIndex: 1,
+  },
+  fab: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+  },
+  fabGradient: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabBar: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+  },
+  tabItem: {
+    flex: 1,
+    alignItems: 'center',
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+});

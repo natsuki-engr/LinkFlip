@@ -5,23 +5,16 @@ import {
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
-  TouchableOpacity,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import * as Haptics from 'expo-haptics';
-import Svg, { Path } from 'react-native-svg';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useCards, useTheme, useProfile } from '@/context/AppContext';
-import { Colors, Spacing, Shadows } from '@/constants/theme';
+import { Colors, Spacing } from '@/constants/theme';
 import { SNSCard } from '@/components/SNSCard';
 import { ProfileHeader } from '@/components/ProfileHeader';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const tabBarHeight = useBottomTabBarHeight();
-  const router = useRouter();
   const { isDarkMode } = useTheme();
   const { cards } = useCards();
   const { isLoading } = useProfile();
@@ -36,16 +29,10 @@ export default function HomeScreen() {
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    // Simulate refresh
     setTimeout(() => {
       setRefreshing(false);
     }, 500);
   }, []);
-
-  const handleAddAccount = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push('/add-account');
-  };
 
   if (isLoading) {
     return (
@@ -85,23 +72,6 @@ export default function HomeScreen() {
           </View>
         </View>
       </ScrollView>
-
-      <TouchableOpacity
-        style={[styles.fab, { bottom: tabBarHeight + 16 }, Shadows.elevation3]}
-        onPress={handleAddAccount}
-        activeOpacity={0.85}
-      >
-        <LinearGradient
-          colors={[Colors.primary.orange, Colors.primary.gold]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.fabGradient}
-        >
-          <Svg width={28} height={28} viewBox="0 0 24 24" fill="#fff">
-            <Path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-          </Svg>
-        </LinearGradient>
-      </TouchableOpacity>
     </LinearGradient>
   );
 }
@@ -128,21 +98,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-  },
-  fab: {
-    position: 'absolute',
-    alignSelf: 'center',
-    left: '50%',
-    marginLeft: -28,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-  },
-  fabGradient: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
