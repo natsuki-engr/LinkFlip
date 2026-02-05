@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
-import { useColorScheme } from 'react-native';
+import { useColorScheme, Platform } from 'react-native';
+import * as nfcEmitter from '@/services/nfcEmitter';
 import {
   UserProfile,
   SNSCard,
@@ -39,6 +40,11 @@ interface AppContextType {
 
   // Settings actions
   setColorScheme: (scheme: ColorScheme) => Promise<void>;
+
+  // NFC state (Android only)
+  nfcEnabled: boolean;
+  nfcAvailable: boolean;
+  setNfcEnabled: (enabled: boolean) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -53,6 +59,7 @@ export function AppProvider({ children }: AppProviderProps) {
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
+  const [nfcAvailable, setNfcAvailable] = useState(false);
 
   // Determine effective color scheme
   const effectiveColorScheme =
@@ -80,6 +87,20 @@ export function AppProvider({ children }: AppProviderProps) {
     }
     loadData();
   }, []);
+
+  // Check NFC hardware availability (Android only)
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      nfcEmitter.checkNfcAvailable().then(setNfcAvailable);
+    }
+  }, []);
+
+  // Sync NFC state when settings load
+  useEffect(() => {
+    if (nfcAvailable && settings.nfcEnabled) {
+      nfcEmitter.setNfcEnabled(true);
+    }
+  }, [nfcAvailable]);
 
   // Update profile
   const updateProfile = useCallback(
@@ -170,6 +191,17 @@ export function AppProvider({ children }: AppProviderProps) {
     [settings]
   );
 
+  // Set NFC enabled
+  const setNfcEnabledValue = useCallback(
+    async (enabled: boolean) => {
+      const newSettings = { ...settings, nfcEnabled: enabled };
+      setSettings(newSettings);
+      await saveSettings(newSettings);
+      await nfcEmitter.setNfcEnabled(enabled);
+    },
+    [settings]
+  );
+
   const value: AppContextType = {
     profile,
     isLoading,
@@ -182,6 +214,9 @@ export function AppProvider({ children }: AppProviderProps) {
     deleteCard,
     reorderCards,
     setColorScheme: setColorSchemeValue,
+    nfcEnabled: settings.nfcEnabled,
+    nfcAvailable,
+    setNfcEnabled: setNfcEnabledValue,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
@@ -215,4 +250,9 @@ export function useCards() {
 export function useTheme() {
   const { isDarkMode, colorScheme, settings, setColorScheme } = useApp();
   return { isDarkMode, colorScheme, settings, setColorScheme };
+}
+
+export function useNfc() {
+  const { nfcEnabled, nfcAvailable, setNfcEnabled } = useApp();
+  return { nfcEnabled, nfcAvailable, setNfcEnabled };
 }

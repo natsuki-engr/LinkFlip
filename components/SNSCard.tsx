@@ -21,6 +21,7 @@ const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 interface SNSCardProps {
   card: SNSCardType;
+  onFlip?: (url: string | null) => void;
 }
 
 // Calculate card width based on screen width (2 columns with padding and gap)
@@ -32,7 +33,7 @@ const cardHeight = CardDimensions.height + 40;
 // QR size: card height - padding(8*2) - platformName(~17) - username(~14) - gaps(~6)
 const qrSize = Math.min(cardWidth - 16, cardHeight - 53);
 
-export function SNSCard({ card }: SNSCardProps) {
+export function SNSCard({ card, onFlip }: SNSCardProps) {
   const { isDarkMode } = useTheme();
   const platformInfo = getPlatformInfo(card.platform);
   const formattedUsername = formatUsername(card.platform, card.username);
@@ -44,6 +45,7 @@ export function SNSCard({ card }: SNSCardProps) {
   const handleFlip = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsFlipped(true);
+    onFlip?.(card.url);
     flipProgress.value = withTiming(1, {
       duration: Animations.flip.duration,
       easing: Easing.out(Easing.ease),
@@ -53,6 +55,7 @@ export function SNSCard({ card }: SNSCardProps) {
   const handleFlipBack = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setIsFlipped(false);
+    onFlip?.(null);
     flipProgress.value = withTiming(0, {
       duration: Animations.flip.duration,
       easing: Easing.out(Easing.ease),

@@ -12,6 +12,7 @@ import { useCards, useTheme, useProfile } from '@/context/AppContext';
 import { Colors, Spacing } from '@/constants/theme';
 import { SNSCard } from '@/components/SNSCard';
 import { ProfileHeader } from '@/components/ProfileHeader';
+import { setCurrentUrl } from '@/services/nfcEmitter';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -20,6 +21,10 @@ export default function HomeScreen() {
   const { isLoading } = useProfile();
 
   const [refreshing, setRefreshing] = useState(false);
+
+  const handleCardFlip = useCallback((url: string | null) => {
+    setCurrentUrl(url);
+  }, []);
 
   const gradientColors = isDarkMode
     ? Colors.dark.backgroundGradient
@@ -67,6 +72,7 @@ export default function HomeScreen() {
               <SNSCard
                 key={card.id}
                 card={card}
+                onFlip={handleCardFlip}
               />
             ))}
           </View>

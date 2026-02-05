@@ -37,7 +37,8 @@
             "backgroundColor": "#0F0E0C"
           }
         }
-      ]
+      ],
+      "./plugins/withNfcHce"
     ],
     "experiments": {
       "typedRoutes": true

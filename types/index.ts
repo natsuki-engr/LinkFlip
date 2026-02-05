@@ -59,6 +59,7 @@ export type ColorScheme = 'light' | 'dark' | 'system';
 // App Settings
 export interface AppSettings {
   colorScheme: ColorScheme;
+  nfcEnabled: boolean;
 }
 
 // Default values
@@ -73,4 +74,5 @@ export const DEFAULT_PROFILE: UserProfile = {
 
 export const DEFAULT_SETTINGS: AppSettings = {
   colorScheme: 'system',
+  nfcEnabled: false,
 };
