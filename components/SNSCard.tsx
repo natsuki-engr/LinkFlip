@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import * as Clipboard from 'expo-clipboard';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -18,15 +16,11 @@ import { useTheme } from '@/context/AppContext';
 import { Colors, BorderRadius, Shadows, Animations, CardDimensions } from '@/constants/theme';
 import { SNSIcon } from './ui/SNSIcon';
 import { QRCodeView } from './QRCodeView';
-import { IconButton } from './ui/IconButton';
-import Svg, { Path } from 'react-native-svg';
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 interface SNSCardProps {
   card: SNSCardType;
-  onCopy?: (url: string) => void;
-  onShare?: (card: SNSCardType) => void;
 }
 
 // Calculate card width based on screen width (2 columns with padding and gap)
@@ -34,8 +28,11 @@ const SCREEN_PADDING = 16;
 const CARD_GAP = 16;
 const screenWidth = Dimensions.get('window').width;
 const cardWidth = (screenWidth - SCREEN_PADDING * 2 - CARD_GAP) / 2;
+const cardHeight = CardDimensions.height + 40;
+// QR size: card height - padding(8*2) - platformName(~17) - username(~14) - gaps(~6)
+const qrSize = Math.min(cardWidth - 16, cardHeight - 53);
 
-export function SNSCard({ card, onCopy, onShare }: SNSCardProps) {
+export function SNSCard({ card }: SNSCardProps) {
   const { isDarkMode } = useTheme();
   const platformInfo = getPlatformInfo(card.platform);
   const formattedUsername = formatUsername(card.platform, card.username);
@@ -87,17 +84,6 @@ export function SNSCard({ card, onCopy, onShare }: SNSCardProps) {
 
   const handlePressOut = () => {
     scale.value = withSpring(1, { damping: 15 });
-  };
-
-  const handleCopy = async () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    await Clipboard.setStringAsync(card.url);
-    onCopy?.(card.url);
-  };
-
-  const handleShare = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    onShare?.(card);
   };
 
   // Front face animation
@@ -179,7 +165,7 @@ export function SNSCard({ card, onCopy, onShare }: SNSCardProps) {
           style={styles.backContent}
           activeOpacity={1}
         >
-          <QRCodeView value={card.url} size={cardWidth - 48} />
+          <QRCodeView value={card.url} size={qrSize} />
           <Text
             style={[styles.backPlatformName, isDarkMode ? styles.textDark : styles.textLight]}
             numberOfLines={1}
@@ -192,18 +178,6 @@ export function SNSCard({ card, onCopy, onShare }: SNSCardProps) {
           >
             {formattedUsername}
           </Text>
-          <View style={styles.actionButtons}>
-            <IconButton onPress={handleCopy} variant="glass" size={36}>
-              <Svg width={18} height={18} viewBox="0 0 24 24" fill={isDarkMode ? Colors.dark.text : Colors.light.text}>
-                <Path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
-              </Svg>
-            </IconButton>
-            <IconButton onPress={handleShare} variant="glass" size={36}>
-              <Svg width={18} height={18} viewBox="0 0 24 24" fill={isDarkMode ? Colors.dark.text : Colors.light.text}>
-                <Path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z" />
-              </Svg>
-            </IconButton>
-          </View>
         </TouchableOpacity>
       </Animated.View>
     </View>
@@ -279,19 +253,14 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
+    padding: 8,
   },
   backPlatformName: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    marginTop: 8,
+    marginTop: 4,
   },
   backUsername: {
-    fontSize: 11,
-    marginBottom: 8,
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: 8,
+    fontSize: 10,
   },
 });

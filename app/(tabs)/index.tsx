@@ -12,15 +12,12 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import * as Sharing from 'expo-sharing';
 import * as Haptics from 'expo-haptics';
 import Svg, { Path } from 'react-native-svg';
 import { useCards, useTheme, useProfile } from '@/context/AppContext';
-import { SNSCard as SNSCardType } from '@/types';
 import { Colors, Spacing, BorderRadius, Shadows, CardDimensions } from '@/constants/theme';
 import { SNSCard } from '@/components/SNSCard';
 import { ProfileHeader } from '@/components/ProfileHeader';
-import { Toast } from '@/components/ui/Toast';
 
 const SCREEN_PADDING = 16;
 const CARD_GAP = 16;
@@ -35,7 +32,6 @@ export default function HomeScreen() {
   const { isLoading } = useProfile();
 
   const [refreshing, setRefreshing] = useState(false);
-  const [toast, setToast] = useState({ visible: false, message: '' });
 
   const gradientColors = isDarkMode
     ? Colors.dark.backgroundGradient
@@ -51,29 +47,9 @@ export default function HomeScreen() {
     }, 500);
   }, []);
 
-  const handleCopy = (url: string) => {
-    setToast({ visible: true, message: 'URLをコピーしました' });
-  };
-
   const handleAddAccount = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     router.push('/add-account');
-  };
-
-  const handleShare = async (card: SNSCardType) => {
-    try {
-      const isAvailable = await Sharing.isAvailableAsync();
-      if (isAvailable) {
-        // For now, just show a toast since we need more complex sharing logic
-        setToast({ visible: true, message: 'シェア機能は準備中です' });
-      }
-    } catch (error) {
-      console.error('Share error:', error);
-    }
-  };
-
-  const hideToast = () => {
-    setToast({ visible: false, message: '' });
   };
 
   if (isLoading) {
@@ -109,8 +85,6 @@ export default function HomeScreen() {
               <SNSCard
                 key={card.id}
                 card={card}
-                onCopy={handleCopy}
-                onShare={handleShare}
               />
             ))}
             <TouchableOpacity
@@ -136,12 +110,6 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
 
-      <Toast
-        message={toast.message}
-        visible={toast.visible}
-        onHide={hideToast}
-        type="success"
-      />
     </LinearGradient>
   );
 }
