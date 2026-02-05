@@ -25,7 +25,7 @@ export function GlassCard({ children, style, intensity = 80, noPadding = false }
   // BlurView doesn't work well on Android, use fallback
   if (Platform.OS === 'android') {
     return (
-      <View style={[containerStyle, isDarkMode ? styles.androidDark : styles.androidLight]}>
+      <View style={[containerStyle, isDarkMode ? styles.androidDark : styles.androidLight, { elevation: 0 }]}>
         {children}
       </View>
     );

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import Animated, {
   useAnimatedStyle,
@@ -124,6 +124,7 @@ export function SNSCard({ card }: SNSCardProps) {
           frontAnimatedStyle,
           isDarkMode ? styles.cardDark : styles.cardLight,
           isDarkMode ? Shadows.glassDark : Shadows.glass,
+          Platform.OS === 'android' && { elevation: 0 },
         ]}
         activeOpacity={1}
       >
@@ -158,6 +159,7 @@ export function SNSCard({ card }: SNSCardProps) {
           backAnimatedStyle,
           isDarkMode ? styles.cardDark : styles.cardLight,
           isDarkMode ? Shadows.glassDark : Shadows.glass,
+          Platform.OS === 'android' && { elevation: 0 },
         ]}
       >
         <TouchableOpacity
