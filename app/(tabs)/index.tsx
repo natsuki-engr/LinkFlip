@@ -3,29 +3,24 @@ import {
   View,
   ScrollView,
   StyleSheet,
-  Text,
   RefreshControl,
   ActivityIndicator,
   TouchableOpacity,
-  Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import Svg, { Path } from 'react-native-svg';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useCards, useTheme, useProfile } from '@/context/AppContext';
-import { Colors, Spacing, BorderRadius, Shadows, CardDimensions } from '@/constants/theme';
+import { Colors, Spacing, Shadows } from '@/constants/theme';
 import { SNSCard } from '@/components/SNSCard';
 import { ProfileHeader } from '@/components/ProfileHeader';
 
-const SCREEN_PADDING = 16;
-const CARD_GAP = 16;
-const screenWidth = Dimensions.get('window').width;
-const addCardWidth = (screenWidth - SCREEN_PADDING * 2 - CARD_GAP) / 2;
-
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
   const router = useRouter();
   const { isDarkMode } = useTheme();
   const { cards } = useCards();
@@ -87,29 +82,26 @@ export default function HomeScreen() {
                 card={card}
               />
             ))}
-            <TouchableOpacity
-              style={[
-                styles.addCard,
-                { width: addCardWidth },
-                isDarkMode ? styles.addCardDark : styles.addCardLight,
-                isDarkMode ? Shadows.glassDark : Shadows.glass,
-              ]}
-              onPress={handleAddAccount}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.addIconCircle, isDarkMode ? styles.addIconCircleDark : styles.addIconCircleLight]}>
-                <Svg width={28} height={28} viewBox="0 0 24 24" fill={Colors.primary.orange}>
-                  <Path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-                </Svg>
-              </View>
-              <Text style={[styles.addCardText, isDarkMode ? styles.textSecondaryDark : styles.textSecondaryLight]}>
-                アカウントを追加
-              </Text>
-            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
 
+      <TouchableOpacity
+        style={[styles.fab, { bottom: tabBarHeight + 16 }, Shadows.elevation3]}
+        onPress={handleAddAccount}
+        activeOpacity={0.85}
+      >
+        <LinearGradient
+          colors={[Colors.primary.orange, Colors.primary.gold]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.fabGradient}
+        >
+          <Svg width={28} height={28} viewBox="0 0 24 24" fill="#fff">
+            <Path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+          </Svg>
+        </LinearGradient>
+      </TouchableOpacity>
     </LinearGradient>
   );
 }
@@ -137,51 +129,20 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
-  addCard: {
-    height: CardDimensions.height + 40,
-    borderRadius: BorderRadius.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: CARD_GAP,
-    borderWidth: 1,
-    borderStyle: 'dashed',
+  fab: {
+    position: 'absolute',
+    alignSelf: 'center',
+    left: '50%',
+    marginLeft: -28,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
   },
-  addCardLight: {
-    backgroundColor: Colors.light.glass60,
-    borderColor: Colors.light.border,
-  },
-  addCardDark: {
-    backgroundColor: Colors.dark.glass60,
-    borderColor: Colors.dark.border,
-  },
-  addIconCircle: {
+  fabGradient: {
     width: 56,
     height: 56,
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
-  },
-  addIconCircleLight: {
-    backgroundColor: Colors.primary.orange + '15',
-  },
-  addIconCircleDark: {
-    backgroundColor: Colors.primary.orange + '20',
-  },
-  addCardText: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  textLight: {
-    color: Colors.light.text,
-  },
-  textDark: {
-    color: Colors.dark.text,
-  },
-  textSecondaryLight: {
-    color: Colors.light.textSecondary,
-  },
-  textSecondaryDark: {
-    color: Colors.dark.textSecondary,
   },
 });
