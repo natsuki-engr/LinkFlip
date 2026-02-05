@@ -115,73 +115,77 @@ export function SNSCard({ card }: SNSCardProps) {
   return (
     <View style={[styles.container, { width: cardWidth }]}>
       {/* Front Face */}
-      <AnimatedTouchable
-        onPress={handleFlip}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        style={[
-          styles.card,
-          frontAnimatedStyle,
-          isDarkMode ? styles.cardDark : styles.cardLight,
-          isDarkMode ? Shadows.glassDark : Shadows.glass,
-          Platform.OS === 'android' && { elevation: 0 },
-        ]}
-        activeOpacity={1}
-      >
-        <View style={styles.cardContent}>
-          {card.useCustomImage && card.customImage ? (
-            <Image source={{ uri: card.customImage }} style={styles.customImage} />
-          ) : (
-            <View style={[styles.iconContainer, { backgroundColor: platformInfo.color + '15' }]}>
-              <SNSIcon platform={card.platform} size={CardDimensions.iconSize} />
-            </View>
-          )}
-          <Text
-            style={[styles.platformName, isDarkMode ? styles.textDark : styles.textLight]}
-            numberOfLines={1}
-          >
-            {platformInfo.name}
-          </Text>
-          <Text
-            style={[styles.username, isDarkMode ? styles.textSecondaryDark : styles.textSecondaryLight]}
-            numberOfLines={1}
-          >
-            {formattedUsername}
-          </Text>
-        </View>
-      </AnimatedTouchable>
-
-      {/* Back Face (QR Code) */}
-      <Animated.View
-        style={[
-          styles.card,
-          styles.cardBack,
-          backAnimatedStyle,
-          isDarkMode ? styles.cardDark : styles.cardLight,
-          isDarkMode ? Shadows.glassDark : Shadows.glass,
-          Platform.OS === 'android' && { elevation: 0 },
-        ]}
-      >
-        <TouchableOpacity
-          onPress={handleFlipBack}
-          style={styles.backContent}
+      <View pointerEvents={isFlipped ? 'none' : 'auto'} style={StyleSheet.absoluteFill}>
+        <AnimatedTouchable
+          onPress={handleFlip}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          style={[
+            styles.card,
+            frontAnimatedStyle,
+            isDarkMode ? styles.cardDark : styles.cardLight,
+            isDarkMode ? Shadows.glassDark : Shadows.glass,
+            Platform.OS === 'android' && { elevation: 0 },
+          ]}
           activeOpacity={1}
         >
-          <QRCodeView value={card.url} size={qrSize} />
-          <Text
-            style={[styles.backPlatformName, isDarkMode ? styles.textDark : styles.textLight]}
-            numberOfLines={1}
+          <View style={styles.cardContent}>
+            {card.useCustomImage && card.customImage ? (
+              <Image source={{ uri: card.customImage }} style={styles.customImage} />
+            ) : (
+              <View style={[styles.iconContainer, { backgroundColor: platformInfo.color + '15' }]}>
+                <SNSIcon platform={card.platform} size={CardDimensions.iconSize} />
+              </View>
+            )}
+            <Text
+              style={[styles.platformName, isDarkMode ? styles.textDark : styles.textLight]}
+              numberOfLines={1}
+            >
+              {platformInfo.name}
+            </Text>
+            <Text
+              style={[styles.username, isDarkMode ? styles.textSecondaryDark : styles.textSecondaryLight]}
+              numberOfLines={1}
+            >
+              {formattedUsername}
+            </Text>
+          </View>
+        </AnimatedTouchable>
+      </View>
+
+      {/* Back Face (QR Code) */}
+      <View pointerEvents={isFlipped ? 'auto' : 'none'} style={StyleSheet.absoluteFill}>
+        <Animated.View
+          style={[
+            styles.card,
+            styles.cardBack,
+            backAnimatedStyle,
+            isDarkMode ? styles.cardDark : styles.cardLight,
+            isDarkMode ? Shadows.glassDark : Shadows.glass,
+            Platform.OS === 'android' && { elevation: 0 },
+          ]}
+        >
+          <TouchableOpacity
+            onPress={handleFlipBack}
+            style={styles.backContent}
+            activeOpacity={1}
           >
-            {platformInfo.name}
-          </Text>
-          <Text
-            style={[styles.backUsername, isDarkMode ? styles.textSecondaryDark : styles.textSecondaryLight]}
-            numberOfLines={1}
-          >
-            {formattedUsername}
-          </Text>
-        </TouchableOpacity>
-      </Animated.View>
+            <QRCodeView value={card.url} size={qrSize} />
+            <Text
+              style={[styles.backPlatformName, isDarkMode ? styles.textDark : styles.textLight]}
+              numberOfLines={1}
+            >
+              {platformInfo.name}
+            </Text>
+            <Text
+              style={[styles.backUsername, isDarkMode ? styles.textSecondaryDark : styles.textSecondaryLight]}
+              numberOfLines={1}
+            >
+              {formattedUsername}
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </View>
     </View>
   );
 }
@@ -208,9 +212,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.dark.glassBorder,
   },
-  cardBack: {
-    zIndex: -1,
-  },
+  cardBack: {},
   cardContent: {
     flex: 1,
     alignItems: 'center',
