@@ -79,11 +79,11 @@ export function SNSCard({ card }: SNSCardProps) {
   };
 
   const handlePressIn = () => {
-    scale.value = withSpring(Animations.press.scale, { damping: 15 });
+    scale.value = withSpring(Animations.press.scale, { damping: 25, stiffness: 300 });
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15 });
+    scale.value = withSpring(1, { damping: 25, stiffness: 300 });
   };
 
   // Front face animation

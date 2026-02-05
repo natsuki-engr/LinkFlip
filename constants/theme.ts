@@ -137,7 +137,7 @@ export const Shadows = {
 // Animation timings
 export const Animations = {
   flip: {
-    duration: 300,
+    duration: 200,
   },
   press: {
     duration: 150,

@@ -1,6 +1,7 @@
 // SNS Platform types
 export type SNSPlatform =
   | 'twitter'
+  | 'x'
   | 'instagram'
   | 'linkedin'
   | 'youtube'

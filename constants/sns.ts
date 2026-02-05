@@ -6,10 +6,21 @@ export const SNS_PLATFORMS: Record<SNSPlatform, PlatformInfo> = {
     id: 'twitter',
     name: 'Twitter',
     color: '#1DA1F2',
-    urlPatterns: [/twitter\.com\/([^/?]+)/, /x\.com\/([^/?]+)/],
+    urlPatterns: [/twitter\.com\/([^/?]+)/],
     usernamePrefix: '@',
     extractUsername: (url: string) => {
-      const match = url.match(/(?:twitter|x)\.com\/([^/?]+)/);
+      const match = url.match(/twitter\.com\/([^/?]+)/);
+      return match ? match[1] : null;
+    },
+  },
+  x: {
+    id: 'x',
+    name: 'X',
+    color: '#000000',
+    urlPatterns: [/x\.com\/([^/?]+)/],
+    usernamePrefix: '@',
+    extractUsername: (url: string) => {
+      const match = url.match(/x\.com\/([^/?]+)/);
       return match ? match[1] : null;
     },
   },
