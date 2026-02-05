@@ -84,10 +84,6 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleAddAccount = () => {
-    router.push('/add-account');
-  };
-
   const handleEditAccount = (cardId: string) => {
     router.push({ pathname: '/edit-account', params: { id: cardId } });
   };
@@ -203,19 +199,7 @@ export default function SettingsScreen() {
             SNSアカウント管理
           </Text>
 
-          <GradientButton
-            title="SNSアカウントを追加"
-            onPress={handleAddAccount}
-            variant="secondary"
-            icon={
-              <Svg width={20} height={20} viewBox="0 0 24 24" fill="#fff">
-                <Path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-              </Svg>
-            }
-            style={styles.addButton}
-          />
-
-          {sortedCards.length > 0 ? (
+{sortedCards.length > 0 ? (
             <GlassCard noPadding>
               {sortedCards.map((card, index) => {
                 const platformInfo = getPlatformInfo(card.platform);
@@ -395,9 +379,6 @@ const styles = StyleSheet.create({
   bioInput: {
     minHeight: 80,
     textAlignVertical: 'top',
-  },
-  addButton: {
-    marginBottom: Spacing.element,
   },
   accountItem: {
     flexDirection: 'row',

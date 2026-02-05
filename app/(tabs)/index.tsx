@@ -6,19 +6,30 @@ import {
   Text,
   RefreshControl,
   ActivityIndicator,
+  TouchableOpacity,
+  Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
+import * as Haptics from 'expo-haptics';
+import Svg, { Path } from 'react-native-svg';
 import { useCards, useTheme, useProfile } from '@/context/AppContext';
 import { SNSCard as SNSCardType } from '@/types';
-import { Colors, Spacing } from '@/constants/theme';
+import { Colors, Spacing, BorderRadius, Shadows, CardDimensions } from '@/constants/theme';
 import { SNSCard } from '@/components/SNSCard';
 import { ProfileHeader } from '@/components/ProfileHeader';
 import { Toast } from '@/components/ui/Toast';
 
+const SCREEN_PADDING = 16;
+const CARD_GAP = 16;
+const screenWidth = Dimensions.get('window').width;
+const addCardWidth = (screenWidth - SCREEN_PADDING * 2 - CARD_GAP) / 2;
+
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { isDarkMode } = useTheme();
   const { cards } = useCards();
   const { isLoading } = useProfile();
@@ -42,6 +53,11 @@ export default function HomeScreen() {
 
   const handleCopy = (url: string) => {
     setToast({ visible: true, message: 'URLをコピーしました' });
+  };
+
+  const handleAddAccount = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    router.push('/add-account');
   };
 
   const handleShare = async (card: SNSCardType) => {
@@ -87,35 +103,37 @@ export default function HomeScreen() {
       >
         <ProfileHeader />
 
-        {sortedCards.length > 0 ? (
-          <View style={styles.cardsContainer}>
-            <View style={styles.cardsGrid}>
-              {sortedCards.map((card) => (
-                <SNSCard
-                  key={card.id}
-                  card={card}
-                  onCopy={handleCopy}
-                  onShare={handleShare}
-                />
-              ))}
-            </View>
-          </View>
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyTitle, isDarkMode ? styles.textDark : styles.textLight]}>
-              SNSアカウントがありません
-            </Text>
-            <Text
+        <View style={styles.cardsContainer}>
+          <View style={styles.cardsGrid}>
+            {sortedCards.map((card) => (
+              <SNSCard
+                key={card.id}
+                card={card}
+                onCopy={handleCopy}
+                onShare={handleShare}
+              />
+            ))}
+            <TouchableOpacity
               style={[
-                styles.emptyDescription,
-                isDarkMode ? styles.textSecondaryDark : styles.textSecondaryLight,
+                styles.addCard,
+                { width: addCardWidth },
+                isDarkMode ? styles.addCardDark : styles.addCardLight,
+                isDarkMode ? Shadows.glassDark : Shadows.glass,
               ]}
+              onPress={handleAddAccount}
+              activeOpacity={0.7}
             >
-              設定画面からSNSアカウントを追加して、{'\n'}
-              QRコードを生成しましょう
-            </Text>
+              <View style={[styles.addIconCircle, isDarkMode ? styles.addIconCircleDark : styles.addIconCircleLight]}>
+                <Svg width={28} height={28} viewBox="0 0 24 24" fill={Colors.primary.orange}>
+                  <Path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                </Svg>
+              </View>
+              <Text style={[styles.addCardText, isDarkMode ? styles.textSecondaryDark : styles.textSecondaryLight]}>
+                アカウントを追加
+              </Text>
+            </TouchableOpacity>
           </View>
-        )}
+        </View>
       </ScrollView>
 
       <Toast
@@ -151,23 +169,40 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  addCard: {
+    height: CardDimensions.height + 40,
+    borderRadius: BorderRadius.card,
     alignItems: 'center',
-    paddingHorizontal: 32,
-    paddingTop: 60,
+    justifyContent: 'center',
+    marginBottom: CARD_GAP,
+    borderWidth: 1,
+    borderStyle: 'dashed',
   },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 8,
-    textAlign: 'center',
+  addCardLight: {
+    backgroundColor: Colors.light.glass60,
+    borderColor: Colors.light.border,
   },
-  emptyDescription: {
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 22,
+  addCardDark: {
+    backgroundColor: Colors.dark.glass60,
+    borderColor: Colors.dark.border,
+  },
+  addIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  addIconCircleLight: {
+    backgroundColor: Colors.primary.orange + '15',
+  },
+  addIconCircleDark: {
+    backgroundColor: Colors.primary.orange + '20',
+  },
+  addCardText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
   textLight: {
     color: Colors.light.text,
