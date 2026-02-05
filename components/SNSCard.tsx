@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import Animated, {
@@ -40,22 +40,6 @@ export function SNSCard({ card }: SNSCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const flipProgress = useSharedValue(0);
   const scale = useSharedValue(1);
-  const autoFlipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Auto flip back after 5 seconds
-  useEffect(() => {
-    if (isFlipped) {
-      autoFlipTimer.current = setTimeout(() => {
-        handleFlipBack();
-      }, 5000);
-    }
-
-    return () => {
-      if (autoFlipTimer.current) {
-        clearTimeout(autoFlipTimer.current);
-      }
-    };
-  }, [isFlipped]);
 
   const handleFlip = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -73,9 +57,6 @@ export function SNSCard({ card }: SNSCardProps) {
       duration: Animations.flip.duration,
       easing: Easing.out(Easing.ease),
     });
-    if (autoFlipTimer.current) {
-      clearTimeout(autoFlipTimer.current);
-    }
   };
 
   const handlePressIn = () => {
